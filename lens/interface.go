@@ -60,16 +60,16 @@ func NewInstrumentedStore(s adt.Store, processor string, method string, args ...
 }
 
 func (s *InstrumentedStore) Context() context.Context {
-	return s.store.Context()
+	return context.Background()
 }
 
 func (s *InstrumentedStore) Get(ctx context.Context, c cid.Cid, out interface{}) error {
 	s.gets++
-	return s.store.Get(ctx, c, out)
+	return s.store.Get(context.Background(), c, out)
 }
 
 func (s *InstrumentedStore) Put(ctx context.Context, v interface{}) (cid.Cid, error) {
-	return s.store.Put(ctx, v)
+	return s.store.Put(context.Background(), v)
 }
 
 func (s *InstrumentedStore) Report() {

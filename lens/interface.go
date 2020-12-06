@@ -53,7 +53,7 @@ type InstrumentedStore struct {
 	processor string
 	method    string
 	args      []interface{}
-	gets      int
+	gets      map[cid.Cid]int
 }
 
 func NewInstrumentedStore(s adt.Store, processor string, method string, args ...interface{}) *InstrumentedStore {
@@ -65,6 +65,7 @@ func NewInstrumentedStore(s adt.Store, processor string, method string, args ...
 		processor: processor,
 		method:    method,
 		args:      args,
+		gets:      map[cid.Cid]int{},
 	}
 
 	InstrumentedStores = append(InstrumentedStores, is)
@@ -77,7 +78,7 @@ func (s *InstrumentedStore) Context() context.Context {
 }
 
 func (s *InstrumentedStore) Get(ctx context.Context, c cid.Cid, out interface{}) error {
-	s.gets++
+	s.gets[c] = s.gets[c] + 1
 	return s.store.Get(context.Background(), c, out)
 }
 
@@ -87,6 +88,17 @@ func (s *InstrumentedStore) Put(ctx context.Context, v interface{}) (cid.Cid, er
 
 func ReportInstrumentedStores() {
 	for _, s := range InstrumentedStores {
-		log.Infow("InstrumentedStore", "processor", s.processor, "method", s.method, "args", fmt.Sprintf("%s", s.args), "gets", s.gets)
+		var maxN int
+		var maxCid cid.Cid
+		var total int
+
+		for c, n := range s.gets {
+			total += n
+			if n > maxN {
+				maxN = n
+				maxCid = c
+			}
+		}
+		log.Infow("InstrumentedStore", "processor", s.processor, "method", s.method, "args", fmt.Sprintf("%s", s.args), "total_gets", total, "unique_gets", len(s.gets), "most_requested_count", maxN, "most_requested_cid", maxCid)
 	}
 }

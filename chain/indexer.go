@@ -85,6 +85,8 @@ func (t *TipSetIndexer) TipSet(ctx context.Context, ts *types.TipSet) error {
 	}
 	defer cancel()
 
+	defer lens.ReportInstrumentedStores()
+
 	start := time.Now()
 
 	// Run each task concurrently

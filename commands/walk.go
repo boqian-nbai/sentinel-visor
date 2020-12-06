@@ -123,8 +123,6 @@ func walk(cctx *cli.Context) error {
 		RestartDelay:        time.Minute,
 	})
 
-	defer lens.ReportInstrumentedStores()
-
 	// Start the scheduler and wait for it to complete or to be cancelled.
 	err = scheduler.Run(ctx)
 	if !errors.Is(err, context.Canceled) {

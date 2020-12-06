@@ -101,4 +101,6 @@ func ReportInstrumentedStores() {
 		}
 		log.Infow("InstrumentedStore", "processor", s.processor, "method", s.method, "args", fmt.Sprintf("%s", s.args), "total_gets", total, "unique_gets", len(s.gets), "most_requested_count", maxN, "most_requested_cid", maxCid)
 	}
+
+	InstrumentedStores = InstrumentedStores[:0]
 }

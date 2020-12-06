@@ -51,7 +51,6 @@ func (p *ActorStateProcessor) ProcessTipSet(ctx context.Context, ts *types.TipSe
 	var err error
 
 	is := lens.NewInstrumentedStore(p.node.Store(), "ActorStateProcessor", "LoadStateTree", ts.ParentState())
-	defer is.Report()
 
 	stateTree, err := state.LoadStateTree(is, ts.ParentState())
 	if err != nil {

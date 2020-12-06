@@ -40,7 +40,6 @@ func NewPowerStateExtractionContext(ctx context.Context, a ActorInfo, node Actor
 	}
 
 	is1 := lens.NewInstrumentedStore(node.Store(), "StoragePowerExtractor", "power.Load", curActor)
-	defer is1.Report()
 	curState, err := power.Load(is1, curActor)
 	if err != nil {
 		return nil, xerrors.Errorf("loading current power state: %w", err)
@@ -54,7 +53,6 @@ func NewPowerStateExtractionContext(ctx context.Context, a ActorInfo, node Actor
 		}
 
 		is2 := lens.NewInstrumentedStore(node.Store(), "StoragePowerExtractor", "power.Load", prevActor)
-		defer is2.Report()
 		prevState, err = power.Load(is2, prevActor)
 		if err != nil {
 			return nil, xerrors.Errorf("loading previous power actor state: %w", err)

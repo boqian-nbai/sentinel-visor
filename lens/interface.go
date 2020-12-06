@@ -3,6 +3,7 @@ package lens
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/filecoin-project/go-state-types/abi"
 	"github.com/filecoin-project/lotus/api"
@@ -42,6 +43,11 @@ var _ adt.Store = (*InstrumentedStore)(nil)
 
 var log = logging.Logger("instrumentation")
 
+var (
+	mu                 sync.Mutex
+	InstrumentedStores = []*InstrumentedStore{}
+)
+
 type InstrumentedStore struct {
 	store     adt.Store
 	processor string
@@ -51,12 +57,19 @@ type InstrumentedStore struct {
 }
 
 func NewInstrumentedStore(s adt.Store, processor string, method string, args ...interface{}) *InstrumentedStore {
-	return &InstrumentedStore{
+	mu.Lock()
+	defer mu.Unlock()
+
+	is := &InstrumentedStore{
 		store:     s,
 		processor: processor,
 		method:    method,
 		args:      args,
 	}
+
+	InstrumentedStores = append(InstrumentedStores, is)
+
+	return is
 }
 
 func (s *InstrumentedStore) Context() context.Context {
@@ -72,6 +85,8 @@ func (s *InstrumentedStore) Put(ctx context.Context, v interface{}) (cid.Cid, er
 	return s.store.Put(context.Background(), v)
 }
 
-func (s *InstrumentedStore) Report() {
-	log.Infow("InstrumentedStore", "processor", s.processor, "method", s.method, "args", fmt.Sprintf("%s", s.args), "gets", s.gets)
+func ReportInstrumentedStores() {
+	for _, s := range InstrumentedStores {
+		log.Infow("InstrumentedStore", "processor", s.processor, "method", s.method, "args", fmt.Sprintf("%s", s.args), "gets", s.gets)
+	}
 }

@@ -57,14 +57,12 @@ func (InitExtractor) Extract(ctx context.Context, a ActorInfo, node ActorStateAP
 	}
 
 	is1 := lens.NewInstrumentedStore(node.Store(), "InitExtractor", "init_.Load", prevActor)
-	defer is1.Report()
 	prevState, err := init_.Load(is1, prevActor)
 	if err != nil {
 		return nil, xerrors.Errorf("loading previous init actor state: %w", err)
 	}
 
 	is2 := lens.NewInstrumentedStore(node.Store(), "InitExtractor", "init_.Load", &a.Actor)
-	defer is2.Report()
 	curState, err := init_.Load(is2, &a.Actor)
 	if err != nil {
 		return nil, xerrors.Errorf("loading current init actor state: %w", err)

@@ -14,6 +14,7 @@ import (
 	"golang.org/x/xerrors"
 
 	"github.com/filecoin-project/sentinel-visor/chain"
+	"github.com/filecoin-project/sentinel-visor/lens"
 	"github.com/filecoin-project/sentinel-visor/tasks/indexer"
 )
 
@@ -121,6 +122,8 @@ func walk(cctx *cli.Context) error {
 		RestartOnCompletion: false,
 		RestartDelay:        time.Minute,
 	})
+
+	defer lens.ReportInstrumentedStores()
 
 	// Start the scheduler and wait for it to complete or to be cancelled.
 	err = scheduler.Run(ctx)

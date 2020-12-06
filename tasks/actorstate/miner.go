@@ -16,6 +16,7 @@ import (
 	sa0builtin "github.com/filecoin-project/specs-actors/actors/builtin"
 	sa2builtin "github.com/filecoin-project/specs-actors/v2/actors/builtin"
 
+	"github.com/filecoin-project/sentinel-visor/lens"
 	"github.com/filecoin-project/sentinel-visor/metrics"
 	"github.com/filecoin-project/sentinel-visor/model"
 	minermodel "github.com/filecoin-project/sentinel-visor/model/actors/miner"
@@ -99,7 +100,9 @@ func NewMinerStateExtractionContext(ctx context.Context, a ActorInfo, node Actor
 		return nil, xerrors.Errorf("loading current tipset: %w", err)
 	}
 
-	curState, err := miner.Load(node.Store(), curActor)
+	is1 := lens.NewInstrumentedStore(node.Store(), "StorageMinerExtractor", "miner.Load", curActor)
+	defer is1.Report()
+	curState, err := miner.Load(is1, curActor)
 	if err != nil {
 		return nil, xerrors.Errorf("loading current miner state: %w", err)
 	}
@@ -111,7 +114,9 @@ func NewMinerStateExtractionContext(ctx context.Context, a ActorInfo, node Actor
 			return nil, xerrors.Errorf("loading previous miner %s at tipset %s epoch %d: %w", a.Address, a.ParentTipSet, a.Epoch, err)
 		}
 
-		prevState, err = miner.Load(node.Store(), prevActor)
+		is2 := lens.NewInstrumentedStore(node.Store(), "StorageMinerExtractor", "miner.Load", prevActor)
+		defer is2.Report()
+		prevState, err = miner.Load(is2, prevActor)
 		if err != nil {
 			return nil, xerrors.Errorf("loading previous miner actor state: %w", err)
 		}

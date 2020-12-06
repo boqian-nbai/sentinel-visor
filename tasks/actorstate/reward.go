@@ -8,6 +8,7 @@ import (
 	sa2builtin "github.com/filecoin-project/specs-actors/v2/actors/builtin"
 	"go.opentelemetry.io/otel/api/global"
 
+	"github.com/filecoin-project/sentinel-visor/lens"
 	"github.com/filecoin-project/sentinel-visor/metrics"
 	"github.com/filecoin-project/sentinel-visor/model"
 	rewardmodel "github.com/filecoin-project/sentinel-visor/model/actors/reward"
@@ -35,7 +36,9 @@ func (RewardExtractor) Extract(ctx context.Context, a ActorInfo, node ActorState
 		return nil, err
 	}
 
-	rstate, err := reward.Load(node.Store(), rewardActor)
+	is1 := lens.NewInstrumentedStore(node.Store(), "RewardExtractor", "reward.Load", rewardActor)
+	defer is1.Report()
+	rstate, err := reward.Load(is1, rewardActor)
 	if err != nil {
 		return nil, err
 	}

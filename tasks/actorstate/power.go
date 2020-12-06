@@ -12,6 +12,7 @@ import (
 	sa0builtin "github.com/filecoin-project/specs-actors/actors/builtin"
 	sa2builtin "github.com/filecoin-project/specs-actors/v2/actors/builtin"
 
+	"github.com/filecoin-project/sentinel-visor/lens"
 	"github.com/filecoin-project/sentinel-visor/metrics"
 	"github.com/filecoin-project/sentinel-visor/model"
 	powermodel "github.com/filecoin-project/sentinel-visor/model/actors/power"
@@ -38,7 +39,9 @@ func NewPowerStateExtractionContext(ctx context.Context, a ActorInfo, node Actor
 		return nil, xerrors.Errorf("loading current tipset: %w", err)
 	}
 
-	curState, err := power.Load(node.Store(), curActor)
+	is1 := lens.NewInstrumentedStore(node.Store(), "StoragePowerExtractor", "power.Load", curActor)
+	defer is1.Report()
+	curState, err := power.Load(is1, curActor)
 	if err != nil {
 		return nil, xerrors.Errorf("loading current power state: %w", err)
 	}
@@ -50,7 +53,9 @@ func NewPowerStateExtractionContext(ctx context.Context, a ActorInfo, node Actor
 			return nil, xerrors.Errorf("loading previous power actor at tipset %s epoch %d: %w", a.ParentTipSet, a.Epoch, err)
 		}
 
-		prevState, err = power.Load(node.Store(), prevActor)
+		is2 := lens.NewInstrumentedStore(node.Store(), "StoragePowerExtractor", "power.Load", prevActor)
+		defer is2.Report()
+		prevState, err = power.Load(is2, prevActor)
 		if err != nil {
 			return nil, xerrors.Errorf("loading previous power actor state: %w", err)
 		}

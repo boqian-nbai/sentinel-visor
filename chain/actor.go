@@ -50,7 +50,10 @@ func (p *ActorStateProcessor) ProcessTipSet(ctx context.Context, ts *types.TipSe
 	var report *visormodel.ProcessingReport
 	var err error
 
-	stateTree, err := state.LoadStateTree(p.node.Store(), ts.ParentState())
+	is := lens.NewInstrumentedStore(p.node.Store(), "ActorStateProcessor", "LoadStateTree", ts.ParentState())
+	defer is.Report()
+
+	stateTree, err := state.LoadStateTree(is, ts.ParentState())
 	if err != nil {
 		return nil, nil, xerrors.Errorf("failed to load state tree: %w", err)
 	}
@@ -108,7 +111,7 @@ func (p *ActorStateProcessor) processStateChanges(ctx context.Context, ts *types
 	// Run each task concurrently
 	results := make(chan *ActorStateResult, len(changes))
 	for addr, act := range changes {
-		go p.runActorStateExtraction(ctx, ts, pts, addr, act, results)
+		go p.runActorStateExtraction(context.Background(), ts, pts, addr, act, results)
 	}
 
 	data := make(PersistableWithTxList, 0, len(changes))

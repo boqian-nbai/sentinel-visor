@@ -10,6 +10,7 @@ import (
 	"go.opentelemetry.io/otel/api/global"
 	"golang.org/x/xerrors"
 
+	"github.com/filecoin-project/sentinel-visor/lens"
 	"github.com/filecoin-project/sentinel-visor/metrics"
 	"github.com/filecoin-project/sentinel-visor/model"
 	multisigmodel "github.com/filecoin-project/sentinel-visor/model/actors/multisig"
@@ -130,7 +131,9 @@ func NewMultiSigExtractionContext(ctx context.Context, a ActorInfo, node ActorSt
 		return nil, xerrors.Errorf("loading current tipset %s: %w", a.TipSet.String(), err)
 	}
 
-	curState, err := multisig.Load(node.Store(), &a.Actor)
+	is1 := lens.NewInstrumentedStore(node.Store(), "MultiSigActorExtractor", "multisig.Load", &a.Actor)
+	defer is1.Report()
+	curState, err := multisig.Load(is1, &a.Actor)
 	if err != nil {
 		return nil, xerrors.Errorf("loading current multisig state at head %s: %w", a.Actor.Head, err)
 	}
@@ -142,7 +145,9 @@ func NewMultiSigExtractionContext(ctx context.Context, a ActorInfo, node ActorSt
 			return nil, xerrors.Errorf("loading previous multisig %s at tipset %s epoch %d: %w", a.Address, a.ParentTipSet, a.Epoch, err)
 		}
 
-		prevState, err = multisig.Load(node.Store(), prevActor)
+		is2 := lens.NewInstrumentedStore(node.Store(), "MultiSigActorExtractor", "multisig.Load", &a.Actor)
+		defer is2.Report()
+		prevState, err = multisig.Load(is2, prevActor)
 		if err != nil {
 			return nil, xerrors.Errorf("loading previous multisig actor state: %w", err)
 		}

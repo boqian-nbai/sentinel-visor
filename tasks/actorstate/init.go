@@ -11,6 +11,7 @@ import (
 	sa0builtin "github.com/filecoin-project/specs-actors/actors/builtin"
 	sa2builtin "github.com/filecoin-project/specs-actors/v2/actors/builtin"
 
+	"github.com/filecoin-project/sentinel-visor/lens"
 	"github.com/filecoin-project/sentinel-visor/model"
 	initmodel "github.com/filecoin-project/sentinel-visor/model/actors/init"
 )
@@ -55,12 +56,16 @@ func (InitExtractor) Extract(ctx context.Context, a ActorInfo, node ActorStateAP
 		return nil, xerrors.Errorf("loading previous init actor: %w", err)
 	}
 
-	prevState, err := init_.Load(node.Store(), prevActor)
+	is1 := lens.NewInstrumentedStore(node.Store(), "InitExtractor", "init_.Load", prevActor)
+	defer is1.Report()
+	prevState, err := init_.Load(is1, prevActor)
 	if err != nil {
 		return nil, xerrors.Errorf("loading previous init actor state: %w", err)
 	}
 
-	curState, err := init_.Load(node.Store(), &a.Actor)
+	is2 := lens.NewInstrumentedStore(node.Store(), "InitExtractor", "init_.Load", &a.Actor)
+	defer is2.Report()
+	curState, err := init_.Load(is2, &a.Actor)
 	if err != nil {
 		return nil, xerrors.Errorf("loading current init actor state: %w", err)
 	}

@@ -14,7 +14,6 @@ import (
 	"golang.org/x/xerrors"
 
 	"github.com/filecoin-project/sentinel-visor/chain"
-	"github.com/filecoin-project/sentinel-visor/lens"
 	"github.com/filecoin-project/sentinel-visor/tasks/indexer"
 )
 

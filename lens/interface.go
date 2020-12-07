@@ -2,7 +2,6 @@ package lens
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"github.com/filecoin-project/go-state-types/abi"
@@ -52,11 +51,11 @@ type InstrumentedStore struct {
 	store     adt.Store
 	processor string
 	method    string
-	args      []interface{}
-	gets      map[cid.Cid]int
+	id        string
+	gets      int
 }
 
-func NewInstrumentedStore(s adt.Store, processor string, method string, args ...interface{}) *InstrumentedStore {
+func NewInstrumentedStore(s adt.Store, processor string, method string, id string) *InstrumentedStore {
 	mu.Lock()
 	defer mu.Unlock()
 
@@ -64,8 +63,7 @@ func NewInstrumentedStore(s adt.Store, processor string, method string, args ...
 		store:     s,
 		processor: processor,
 		method:    method,
-		args:      args,
-		gets:      map[cid.Cid]int{},
+		id:        id,
 	}
 
 	InstrumentedStores = append(InstrumentedStores, is)
@@ -78,7 +76,7 @@ func (s *InstrumentedStore) Context() context.Context {
 }
 
 func (s *InstrumentedStore) Get(ctx context.Context, c cid.Cid, out interface{}) error {
-	s.gets[c] = s.gets[c] + 1
+	s.gets++
 	return s.store.Get(context.Background(), c, out)
 }
 
@@ -86,20 +84,10 @@ func (s *InstrumentedStore) Put(ctx context.Context, v interface{}) (cid.Cid, er
 	return s.store.Put(context.Background(), v)
 }
 
-func ReportInstrumentedStores() {
+func ReportInstrumentedStores(ts *types.TipSet) {
+	log.Infow("InstrumentedStore", "height", ts.Height(), "stateroot", ts.ParentState(), "tipset", ts.String())
 	for _, s := range InstrumentedStores {
-		var maxN int
-		var maxCid cid.Cid
-		var total int
-
-		for c, n := range s.gets {
-			total += n
-			if n > maxN {
-				maxN = n
-				maxCid = c
-			}
-		}
-		log.Infow("InstrumentedStore", "processor", s.processor, "method", s.method, "args", fmt.Sprintf("%s", s.args), "total_gets", total, "unique_gets", len(s.gets), "most_requested_count", maxN, "most_requested_cid", maxCid)
+		log.Infow("InstrumentedStore", "processor", s.processor, "method", s.method, "id", s.id, "gets", s.gets)
 	}
 
 	InstrumentedStores = InstrumentedStores[:0]

@@ -100,7 +100,7 @@ func NewMinerStateExtractionContext(ctx context.Context, a ActorInfo, node Actor
 		return nil, xerrors.Errorf("loading current tipset: %w", err)
 	}
 
-	is1 := lens.NewInstrumentedStore(node.Store(), "StorageMinerExtractor", "miner.Load", curActor)
+	is1 := lens.NewInstrumentedStore(node.Store(), "StorageMinerExtractor", "miner.Load", curActor.Head.String())
 	curState, err := miner.Load(is1, curActor)
 	if err != nil {
 		return nil, xerrors.Errorf("loading current miner state: %w", err)
@@ -113,7 +113,7 @@ func NewMinerStateExtractionContext(ctx context.Context, a ActorInfo, node Actor
 			return nil, xerrors.Errorf("loading previous miner %s at tipset %s epoch %d: %w", a.Address, a.ParentTipSet, a.Epoch, err)
 		}
 
-		is2 := lens.NewInstrumentedStore(node.Store(), "StorageMinerExtractor", "miner.Load", prevActor)
+		is2 := lens.NewInstrumentedStore(node.Store(), "StorageMinerExtractor", "miner.Load", prevActor.Head.String())
 		prevState, err = miner.Load(is2, prevActor)
 		if err != nil {
 			return nil, xerrors.Errorf("loading previous miner actor state: %w", err)

@@ -131,7 +131,7 @@ func NewMultiSigExtractionContext(ctx context.Context, a ActorInfo, node ActorSt
 		return nil, xerrors.Errorf("loading current tipset %s: %w", a.TipSet.String(), err)
 	}
 
-	is1 := lens.NewInstrumentedStore(node.Store(), "MultiSigActorExtractor", "multisig.Load", &a.Actor)
+	is1 := lens.NewInstrumentedStore(node.Store(), "MultiSigActorExtractor", "multisig.Load", a.Actor.Head.String())
 	curState, err := multisig.Load(is1, &a.Actor)
 	if err != nil {
 		return nil, xerrors.Errorf("loading current multisig state at head %s: %w", a.Actor.Head, err)
@@ -144,7 +144,7 @@ func NewMultiSigExtractionContext(ctx context.Context, a ActorInfo, node ActorSt
 			return nil, xerrors.Errorf("loading previous multisig %s at tipset %s epoch %d: %w", a.Address, a.ParentTipSet, a.Epoch, err)
 		}
 
-		is2 := lens.NewInstrumentedStore(node.Store(), "MultiSigActorExtractor", "multisig.Load", &a.Actor)
+		is2 := lens.NewInstrumentedStore(node.Store(), "MultiSigActorExtractor", "multisig.Load", prevActor.Head.String())
 		prevState, err = multisig.Load(is2, prevActor)
 		if err != nil {
 			return nil, xerrors.Errorf("loading previous multisig actor state: %w", err)

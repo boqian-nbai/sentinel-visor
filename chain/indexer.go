@@ -85,7 +85,7 @@ func (t *TipSetIndexer) TipSet(ctx context.Context, ts *types.TipSet) error {
 	}
 	defer cancel()
 
-	defer lens.ReportInstrumentedStores()
+	defer lens.ReportInstrumentedStores(ts)
 
 	start := time.Now()
 

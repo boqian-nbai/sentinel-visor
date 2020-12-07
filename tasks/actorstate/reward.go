@@ -36,7 +36,7 @@ func (RewardExtractor) Extract(ctx context.Context, a ActorInfo, node ActorState
 		return nil, err
 	}
 
-	is1 := lens.NewInstrumentedStore(node.Store(), "RewardExtractor", "reward.Load", rewardActor)
+	is1 := lens.NewInstrumentedStore(node.Store(), "RewardExtractor", "reward.Load", rewardActor.Head.String())
 	rstate, err := reward.Load(is1, rewardActor)
 	if err != nil {
 		return nil, err

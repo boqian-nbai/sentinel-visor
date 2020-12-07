@@ -50,7 +50,7 @@ func (p *ActorStateProcessor) ProcessTipSet(ctx context.Context, ts *types.TipSe
 	var report *visormodel.ProcessingReport
 	var err error
 
-	is := lens.NewInstrumentedStore(p.node.Store(), "ActorStateProcessor", "LoadStateTree", ts.ParentState())
+	is := lens.NewInstrumentedStore(p.node.Store(), "ActorStateProcessor", "LoadStateTree", ts.ParentState().String())
 
 	stateTree, err := state.LoadStateTree(is, ts.ParentState())
 	if err != nil {

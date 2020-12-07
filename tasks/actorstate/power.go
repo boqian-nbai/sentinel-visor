@@ -39,7 +39,7 @@ func NewPowerStateExtractionContext(ctx context.Context, a ActorInfo, node Actor
 		return nil, xerrors.Errorf("loading current tipset: %w", err)
 	}
 
-	is1 := lens.NewInstrumentedStore(node.Store(), "StoragePowerExtractor", "power.Load", curActor)
+	is1 := lens.NewInstrumentedStore(node.Store(), "StoragePowerExtractor", "power.Load", curActor.Head.String())
 	curState, err := power.Load(is1, curActor)
 	if err != nil {
 		return nil, xerrors.Errorf("loading current power state: %w", err)
@@ -52,7 +52,7 @@ func NewPowerStateExtractionContext(ctx context.Context, a ActorInfo, node Actor
 			return nil, xerrors.Errorf("loading previous power actor at tipset %s epoch %d: %w", a.ParentTipSet, a.Epoch, err)
 		}
 
-		is2 := lens.NewInstrumentedStore(node.Store(), "StoragePowerExtractor", "power.Load", prevActor)
+		is2 := lens.NewInstrumentedStore(node.Store(), "StoragePowerExtractor", "power.Load", prevActor.Head.String())
 		prevState, err = power.Load(is2, prevActor)
 		if err != nil {
 			return nil, xerrors.Errorf("loading previous power actor state: %w", err)
